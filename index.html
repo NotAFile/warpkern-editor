@@ -6,6 +6,7 @@
             body {
                 padding: 0 0;
                 background-color: black;
+                color: white;
             }
             #c {
                 width: 20vh;
@@ -89,6 +90,7 @@
         <div id="topbar">
             <button onclick="live_renderer.reloadShader()">Play</button>
             <button onclick="save()">Render and Download</button>
+            <span id="status">ready</span>
         </div>
         <canvas id="c" height="12" width="191"></canvas>
 <div id="editor">uniform float time;

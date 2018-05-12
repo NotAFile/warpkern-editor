@@ -6,11 +6,16 @@ function createShader(gl, type, source) {
     gl.compileShader(shader);
     var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (success) {
+        document.getElementById("status").innerHTML = "success";
         return shader;
     }
 
-    console.log(gl.getShaderInfoLog(shader));
+    var faillog = gl.getShaderInfoLog(shader);
+    console.log("shader compile failed");
+    console.log(faillog);
     gl.deleteShader(shader);
+
+    document.getElementById("status").innerHTML = faillog;
 }
 
 function createProgram(gl, vertexShader, fragmentShader) {
@@ -20,11 +25,16 @@ function createProgram(gl, vertexShader, fragmentShader) {
     gl.linkProgram(program);
     var success = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (success) {
+        document.getElementById("status").innerHTML = "success";
         return program;
     }
 
-    console.log(gl.getProgramInfoLog(program));
+    var faillog = gl.getProgramInfoLog(program);
+    console.log("program link failed");
+    console.log(faillog);
     gl.deleteProgram(program);
+
+    document.getElementById("status").text = faillog;
 }
 
 const FPS = 20;
@@ -86,10 +96,15 @@ class ShaderRenderer {
         var fragmentShaderSource = editor.getValue();
         var fragmentShaderPreamble = document.getElementById("fragment-shader-preamble").text;
         var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderPreamble + fragmentShaderSource);
+        if (!fragmentShader) {
+            console.log("shader creation failed")
+            return;
+        }
         var program = createProgram(gl, this.vertexShader, fragmentShader);
 
         this.program = program;
         console.log("created program")
+        var fragmentShaderPreamble = document.getElementById("fragment-shader-preamble").text;
         // Tell it to use our program (pair of shaders)
         gl.useProgram(program);
     }
@@ -113,6 +128,8 @@ class ShaderRenderer {
     }
 
     render_save(){
+        this.canvas.height = 12;
+        this.canvas.width = 191;
         var frames = [];
 
         for (var frame=0; frame < ANIM_LENGTH; frame ++){
@@ -127,7 +144,7 @@ class ShaderRenderer {
         if (this.runAnimation){
             return;
         }
-        save = JSON.stringify(this.render_save());
+        save = JSON.stringify({source: editor.getValue(), preview: this.render_save()});
         return "data:application/octet-stream," + encodeURIComponent(save);
     }
 
