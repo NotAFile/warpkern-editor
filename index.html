@@ -84,6 +84,10 @@
         vec3 hsl2rgb(float h, float s, float l) {
             return hsl2rgb(vec3(h, s, l));
         }
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
     </script>
     </head>
     <body>
@@ -115,7 +119,15 @@ void main() {
     // gl_FragColor is a special variable in a fragment shader
     // it is responsible for setting the color of the pixel
     gl_FragColor = vec4(rgb, 1.0);
-}</div>
+}
+
+// a number of functions have already been defined:
+// -- hsv
+// vec3 hsv2rgb(h, s, v)
+// vec3 hsv2rgb(vec3)
+// -- random
+// float rand(vec2) // vec2 is the seed
+</div>
         <a id="dllink" target="_blank" download="animation.json"></a>
         <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
         <script src="index.js"></script>
