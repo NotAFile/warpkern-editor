@@ -96,6 +96,9 @@
 <div id="editor">uniform float time;
 
 void main() {
+    // the warpcore resolution is 12x191 pixel
+    // the canvas coordinates go from -1 to 1, with 0 in the middle
+
     // This function gets 'called' for each pixel in the image
     // set constants using const. Almost everything is a float,
     // don't forget to add the .0 at the end, else stuff breaks
