@@ -93,7 +93,9 @@
             <span id="status">ready</span>
         </div>
         <canvas id="c" height="12" width="191"></canvas>
-<div id="editor">uniform float time;
+<div id="editor">// time is a float between 0.0 and 10.0, representing the current time in seconds
+// the animation loops every 10 seconds
+uniform float time;
 
 void main() {
     // the warpcore resolution is 12x191 pixel
