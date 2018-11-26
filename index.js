@@ -1,5 +1,20 @@
 "use strict";
 
+var examples = [
+    "/examples/rainbow.glsl",
+    "/examples/bounce.glsl",
+    "/examples/crawl.glsl",
+]
+
+function loadExampleFromURI(uri){
+    fetch(uri)
+        .then(function(response) {
+            console.log("loaded " + uri);
+            editor.setValue(response.text(), 1)
+        });
+}
+
+
 function createShader(gl, type, source) {
     var shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -168,13 +183,56 @@ function save(){
     dllink.click()
 }
 
+function on_play_shader() {
+    var fragmentShaderSource = editor.getValue();
+    localStorage.setItem("lastFragmentShader", fragmentShaderSource);
+    live_renderer.reloadShader();
+}
+
+function set_vim_mode(enabled) {
+    if (enabled) {
+        editor.setKeyboardHandler("ace/keyboard/vim");
+    }
+    else {
+        editor.setKeyboardHandler(null);
+    }
+}
+
+function toggle_vim() {
+    let vim_mode = document.getElementById("vim_toggle").checked;
+    set_vim_mode(vim_mode);
+    localStorage.setItem("vimMode", vim_mode);
+}
+
+function load_vim() {
+    let vim_mode = localStorage.getItem("vimMode");
+    set_vim_mode(vim_mode);
+    document.getElementById("vim_toggle").checked = vim_mode;
+}
+
 var live_canvas = document.getElementById("c");
 
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/monokai");
 editor.session.setMode("ace/mode/glsl");
 
-// screen can only do 20 fps
-var live_renderer = new ShaderRenderer(live_canvas);
-live_renderer.start_live_render()
+load_vim();
 
+/*
+let lastShader = localStorage.getItem("lastFragmentShader");
+if (lastShader !== undefined) {
+    editor.setValue(lastShader, 1);
+}
+else {
+}
+*/
+
+var live_render;
+
+window.onload = function() {
+    console.log("load");
+    loadExampleFromURI(examples[0]);
+    live_renderer = new ShaderRenderer(live_canvas);
+    // screen can only do 20 fps
+    live_renderer.start_live_render()
+}

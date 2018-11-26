@@ -1,0 +1,22 @@
+{
+  "name": "warpkern-editor",
+  "version": "1.0.0",
+  "description": "Live-editor for warpkern shaders",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NotAFile/warpkern-editor.git"
+  },
+  "author": "",
+  "license": "Apache",
+  "bugs": {
+    "url": "https://github.com/NotAFile/warpkern-editor/issues"
+  },
+  "homepage": "https://github.com/NotAFile/warpkern-editor#readme"
+}
