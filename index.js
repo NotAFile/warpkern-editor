@@ -1,9 +1,9 @@
 "use strict";
 
 var examples = [
-    "/examples/rainbow.glsl",
-    "/examples/bounce.glsl",
-    "/examples/crawl.glsl",
+    "examples/rainbow.glsl",
+    "examples/bounce.glsl",
+    "examples/crawl.glsl",
 ]
 
 function loadExampleFromURI(uri){
