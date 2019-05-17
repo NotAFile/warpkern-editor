@@ -2,26 +2,25 @@
 <html>
     <head>
         <meta charset="utf-8" />
+        <link href="node_modules/tachyons/css/tachyons.css" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body {
+                height: 100vh;
                 padding: 0 0;
                 background-color: black;
                 color: white;
             }
-            #c {
-                width: 20vh;
+            #render-canvas {
                 height: 90vh;
                 display: block;
-                float: left;
                 image-rendering: optimizeSpeed;
             }
             #editor {
-                width: 80vw;
                 height: 90vh;
                 background-color: black;
                 border: none;
                 color: white;
-                padding: 5px;
             }
         </style>
         <script id="2d-vertex-shader" type="notjs">
@@ -91,17 +90,25 @@
     </script>
     </head>
     <body>
-        <div id="topbar">
-            <button onclick="on_play_shader()">Play</button>
-            <button onclick="save()">Render and Download</button>
-            <span id="status">ready</span>
-            <input type="checkbox" id="vim_toggle" onclick="toggle_vim()">Vim mode</button>
+        <div id="app">
+        <div id="topbar" class="sans-serif pv2 ph1">
+            <a class="f6 link dim br1 ph3 pv2 dib white bg-green" href="#" onclick="on_play_shader()">Play</a>
+            <span class="ml2" id="status">{{ status }}</span>
+            <div class="fr flex items-center">
+                <input class="mr1" type="checkbox" id="vim_toggle" v-model="vim_mode">
+                <label class="mr2" for="vim_mode">Vim mode</label>
+                <a class="f6 link dim br1 ph3 pv2 dib white bg-gray" href="#" onclick="save()">Render and Download</a>
+            </div>
         </div>
-        <canvas id="c" height="12" width="191"></canvas>
-<div id="editor">
-</div>
+        <div class="flex h-100">
+            <canvas class="fl w-20 h-100" id="render-canvas" height="12" width="191"></canvas>
+            <div class="fl w-80 h-100" id="editor">
+        </div>
+        </div>
         <a id="dllink" target="_blank" download="animation.json"></a>
+        </div>
+
         <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-        <script src="index.js"></script>
+        <script src="main.js"></script>
     </body>
 </html>

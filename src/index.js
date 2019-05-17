@@ -1,27 +1,44 @@
 "use strict";
 
-var examples = [
-    "examples/rainbow.glsl",
-    "examples/bounce.glsl",
-    "examples/crawl.glsl",
-]
+import Vue from "vue";
+
+let vm = new Vue({
+    el: "#app",
+    data: {
+        status: "ready",
+        vim_mode: false,
+        saved_shaders: {
+            examples: [
+                "examples/rainbow.glsl",
+                "examples/bounce.glsl",
+                "examples/crawl.glsl",
+            ],
+        },
+    },
+});
+
 
 function loadExampleFromURI(uri){
     fetch(uri)
         .then(function(response) {
-            console.log("loaded " + uri);
-            editor.setValue(response.text(), 1)
+            console.log("loading " + uri);
+            response.text().then(text => {
+                console.log("loaded " + uri);
+                editor.setValue(text, 1);
+            }
+            );
         });
 }
 
 
 function createShader(gl, type, source) {
+    vm.staus = "Compiling Shader...";
     var shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (success) {
-        document.getElementById("status").innerHTML = "success";
+        vm.staus = "done!";
         return shader;
     }
 
@@ -30,17 +47,18 @@ function createShader(gl, type, source) {
     console.log(faillog);
     gl.deleteShader(shader);
 
-    document.getElementById("status").innerHTML = faillog;
+    vm.status = faillog;
 }
 
 function createProgram(gl, vertexShader, fragmentShader) {
+    vm.status = "Linking Program...";
     var program = gl.createProgram();
     gl.attachShader(program, fragmentShader);
     gl.attachShader(program, vertexShader);
     gl.linkProgram(program);
     var success = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (success) {
-        document.getElementById("status").innerHTML = "success";
+        vm.staus = "done!";
         return program;
     }
 
@@ -49,7 +67,7 @@ function createProgram(gl, vertexShader, fragmentShader) {
     console.log(faillog);
     gl.deleteProgram(program);
 
-    document.getElementById("status").text = faillog;
+    vm.status = faillog;
 }
 
 const FPS = 20;
@@ -58,8 +76,8 @@ const ANIM_LENGTH = FPS * 10; // 10 seconds
 class ShaderRenderer {
     constructor(canvas) {
         var gl = canvas.getContext("webgl");
-        this.gl = gl
-        this.canvas = canvas
+        this.gl = gl;
+        this.canvas = canvas;
 
         this.runAnimation = false;
         this.starttime = Date.now();
@@ -69,21 +87,11 @@ class ShaderRenderer {
         var vertexShaderSource = document.getElementById("2d-vertex-shader").text;
         var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
         this.vertexShader = vertexShader;
+
+        this.createBuffers();
         this.reloadShader();
 
-        var positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-        var positionAttributeLocation = gl.getAttribLocation(this.program, "a_position");
-
-        // three 2d points
-        var positions = [
-          -1, 1,
-          1, 1,
-          1, -1,
-          -1, -1,
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        console.log(this.program);
 
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
@@ -91,43 +99,74 @@ class ShaderRenderer {
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.enableVertexAttribArray(positionAttributeLocation);
+    }
+
+    createBuffers() {
+        let gl = this.gl;
+        var positionBuffer = gl.createBuffer();
 
         // Bind the position buffer.
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
+        // three 2d points
+        let positions = [
+            -1, 1,
+            1, 1,
+            1, -1,
+            -1, -1,
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    }
+
+    configPositionAttribute(program) {
+        let gl = this.gl;
         // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-        var size = 2;          // 2 components per iteration
-        var type = gl.FLOAT;   // the data is 32bit floats
-        var normalize = false; // don't normalize the data
-        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-        var offset = 0;        // start at the beginning of the buffer
+        let size = 2;          // 2 components per iteration
+        let type = gl.FLOAT;   // the data is 32bit floats
+        let normalize = false; // don't normalize the data
+        let stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        let offset = 0;        // start at the beginning of the buffer
+
+        var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+
+        gl.enableVertexAttribArray(positionAttributeLocation);
+
         gl.vertexAttribPointer(
-            positionAttributeLocation, size, type, normalize, stride, offset)
+            positionAttributeLocation, size, type, normalize, stride, offset);
+
     }
 
     reloadShader() {
         var gl = this.gl;
         var fragmentShaderSource = editor.getValue();
+        if (fragmentShaderSource === "") {
+            console.log("empty shader");
+            return false;
+        }
         var fragmentShaderPreamble = document.getElementById("fragment-shader-preamble").text;
         var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderPreamble + fragmentShaderSource);
         if (!fragmentShader) {
-            console.log("shader creation failed")
-            return;
+            console.log("shader creation failed");
+            return false;
         }
         var program = createProgram(gl, this.vertexShader, fragmentShader);
 
+        this.configPositionAttribute(program);
+
         this.program = program;
-        console.log("created program")
-        var fragmentShaderPreamble = document.getElementById("fragment-shader-preamble").text;
+        console.log("created program");
+        vm.status = "running"; // Add Seconds
         // Tell it to use our program (pair of shaders)
         gl.useProgram(program);
+
+        return true;
     }
 
     start_live_render() {
         this.runAnimation = true;
 
-        let self = this
+        let self = this;
 
         function live_render(renderer) {
             let time = Date.now() - self.starttime;
@@ -159,11 +198,19 @@ class ShaderRenderer {
         if (this.runAnimation){
             return;
         }
-        save = JSON.stringify({source: editor.getValue(), preview: this.render_save()});
+        let save = JSON.stringify({
+            source: editor.getValue(),
+            preview: this.render_save(),
+            disclaimer: "please forgive us for this file format",
+        });
         return "data:application/octet-stream," + encodeURIComponent(save);
     }
 
     render(gl, time) {
+        if(!this.program) {
+            // no valid compile
+            return;
+        }
         var timeAttributeLocation = gl.getUniformLocation(this.program, "time");
         gl.uniform1f(timeAttributeLocation, time);
 
@@ -178,9 +225,9 @@ function save(){
     let canvas = document.createElement("canvas");
     let renderer = new ShaderRenderer(canvas);
     let uri = renderer.render_to_data_uri();
-    dllink = document.getElementById("dllink")
+    var dllink = document.getElementById("dllink");
     dllink.href = uri;
-    dllink.click()
+    dllink.click();
 }
 
 function on_play_shader() {
@@ -189,50 +236,58 @@ function on_play_shader() {
     live_renderer.reloadShader();
 }
 
+window.on_play_shader = on_play_shader;
+window.save = save;
+
+vm.$watch("vim_mode", set_vim_mode);
+
 function set_vim_mode(enabled) {
+    console.log(enabled);
     if (enabled) {
+        console.log("vim enabled");
         editor.setKeyboardHandler("ace/keyboard/vim");
     }
     else {
+        console.log("vim disabled");
         editor.setKeyboardHandler(null);
     }
-}
-
-function toggle_vim() {
-    let vim_mode = document.getElementById("vim_toggle").checked;
-    set_vim_mode(vim_mode);
-    localStorage.setItem("vimMode", vim_mode);
+    localStorage.setItem("vimMode", enabled);
 }
 
 function load_vim() {
-    let vim_mode = localStorage.getItem("vimMode");
-    set_vim_mode(vim_mode);
-    document.getElementById("vim_toggle").checked = vim_mode;
+    vm.vim_mode = JSON.parse(localStorage.getItem("vimMode"));
 }
 
-var live_canvas = document.getElementById("c");
+var live_canvas = document.getElementById("render-canvas");
 
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/monokai");
 editor.session.setMode("ace/mode/glsl");
 
-load_vim();
-
 /*
-let lastShader = localStorage.getItem("lastFragmentShader");
-if (lastShader !== undefined) {
-    editor.setValue(lastShader, 1);
-}
-else {
-}
+ace.config.loadModule("ace/keyboard/vim", function(m) {
+    var VimApi = require("ace/keyboard/vim").CodeMirror.Vim
+    VimApi.defineEx("run", "r", function(cm, input) {
+        cm.ace.execCommand("save")
+    })
+})
 */
 
-var live_render;
+load_vim();
+
+let lastShader = localStorage.getItem("lastFragmentShader");
+console.log(lastShader);
+if (lastShader !== null) {
+    editor.setValue(lastShader, 1);
+} else {
+    loadExampleFromURI(vm.saved_shaders.examples[2]);
+}
+
+var live_renderer;
 
 window.onload = function() {
     console.log("load");
-    loadExampleFromURI(examples[0]);
     live_renderer = new ShaderRenderer(live_canvas);
     // screen can only do 20 fps
-    live_renderer.start_live_render()
-}
+    live_renderer.start_live_render();
+};
