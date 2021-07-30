@@ -2,28 +2,9 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <link href="node_modules/tachyons/css/tachyons.css" rel="stylesheet">
+        <!--<link href="style.css" rel="stylesheet">-->
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-                height: 100vh;
-                padding: 0 0;
-                background-color: black;
-                color: white;
-            }
-            #render-canvas {
-                height: 90vh;
-                display: block;
-                image-rendering: optimizeSpeed;
-            }
-            #editor {
-                height: 90vh;
-                background-color: black;
-                border: none;
-                color: white;
-            }
-        </style>
-        <script id="2d-vertex-shader" type="notjs">
+        <script id="2d-vertex-shader" type="notjs">#version 100
 
         // an attribute will receive data from a buffer
         attribute vec4 a_position;
@@ -36,7 +17,7 @@
         }
 
         </script>
-        <script id="fragment-shader-preamble" type="notjs">
+        <script id="fragment-shader-preamble" type="notjs">#version 100
         // fragment shaders don't have a default precision so we need
         // to pick one. mediump is a good default
         precision mediump float;
@@ -89,23 +70,29 @@
     }
     </script>
     </head>
-    <body>
-        <div id="app">
-        <div id="topbar" class="sans-serif pv2 ph1">
-            <a class="f6 link dim br1 ph3 pv2 dib white bg-green" href="#" onclick="on_play_shader()">Play</a>
-            <span class="ml2" id="status">{{ status }}</span>
-            <div class="fr flex items-center">
-                <input class="mr1" type="checkbox" id="vim_toggle" v-model="vim_mode">
-                <label class="mr2" for="vim_mode">Vim mode</label>
-                <a class="f6 link dim br1 ph3 pv2 dib white bg-gray" href="#" onclick="save()">Render and Download</a>
+    <body class="vh-100">
+        <div id="app" class="flex flex-column h-100 bg-gray">
+            <div id="topbar" class="sans-serif pv2 ph1 bg-dark-gray white">
+                <a class="f6 link dim br1 ph3 pv2 dib white bg-green" href="#" onclick="on_play_shader()">Play</a>
+                <a class="f6 link dim br1 ph3 pv2 dib white bg-green" href="#" onclick="on_stop_shader()">Stop</a>
+                <span class="ml2" id="status">{{ status }}</span>
+                <div class="fr flex items-center">
+                    <input class="mr1" type="checkbox" id="vim_toggle" v-model="vim_mode">
+                    <label class="mr2" for="vim_mode">Vim mode</label>
+                    <a class="f6 link dim mr1 br1 ph3 pv2 dib white bg-gray" href="#" onclick="open_saved()">Open/New</a>
+                    <a class="f6 link dim mr1 br1 ph3 pv2 dib white bg-gray" href="#" onclick="save()">Render and Download</a>
+                </div>
             </div>
-        </div>
-        <div class="flex h-100">
-            <canvas class="fl w-20 h-100" id="render-canvas" height="12" width="191"></canvas>
-            <div class="fl w-80 h-100" id="editor">
-        </div>
-        </div>
-        <a id="dllink" target="_blank" download="animation.json"></a>
+            <div id="content" class="flex-auto h-100">
+                <canvas class="fl w-20 h-100" id="render-canvas" height="12" width="191"></canvas>
+                <div class="fl w-80 h-100" id="editor"></div>
+            </div>
+            <div v-if="openModal" id="openModal">
+                <div class="fixed w-100 h-100">
+                    test123
+                </div>
+            </div>
+            <a id="dllink" target="_blank" download="animation.json"></a>
         </div>
 
         <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>

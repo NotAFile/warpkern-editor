@@ -6,7 +6,7 @@
     "example": "examples"
   },
   "scripts": {
-    "dev": "webpack-dev-server -d --mode development",
+    "dev": "webpack-dev-server -d --mode development --watch",
     "prod": "webpack --mode production"
   },
   "repository": {
@@ -29,6 +29,8 @@
     "babel-loader": "^8.0.6",
     "browser-sync": "^2.26.5",
     "browser-sync-webpack-plugin": "^2.2.2",
+    "css-loader": "^2.1.1",
+    "style-loader": "^0.23.1",
     "vue-loader": "^15.7.0",
     "vue-template-compiler": "^2.6.10",
     "webpack": "^4.31.0",

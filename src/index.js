@@ -1,6 +1,11 @@
 "use strict";
 
 import Vue from "vue";
+import "tachyons";
+
+import extractMetadata from "./metadata";
+
+window.extractMetadata = extractMetadata;
 
 let vm = new Vue({
     el: "#app",
@@ -14,6 +19,7 @@ let vm = new Vue({
                 "examples/crawl.glsl",
             ],
         },
+        openModal: true,
     },
 });
 
@@ -163,18 +169,23 @@ class ShaderRenderer {
         return true;
     }
 
+    stop_live_render() {
+        this.runAnimation = false;
+    }
+
     start_live_render() {
         this.runAnimation = true;
 
         let self = this;
 
-        function live_render(renderer) {
+        function live_render() {
             let time = Date.now() - self.starttime;
 
             let frame = Math.round(time / (1000 / FPS), 0) % ANIM_LENGTH;
 
             if (self.runAnimation) {
                 self.render(self.gl, frame / FPS);
+
                 window.requestAnimationFrame(live_render);
             }
         }
@@ -211,13 +222,14 @@ class ShaderRenderer {
             // no valid compile
             return;
         }
+        var resolutionUniformLocation = gl.getUniformLocation(this.program, "iResolution");
+        gl.uniform2f(resolutionUniformLocation, 191, 12);
         var timeAttributeLocation = gl.getUniformLocation(this.program, "time");
         gl.uniform1f(timeAttributeLocation, time);
 
-        var primitiveType = 6;
         var offset = 0;
         var count = 4;
-        gl.drawArrays(primitiveType, offset, count);
+        gl.drawArrays(gl.TRIANGLE_FAN, offset, count);
     }
 }
 
@@ -236,13 +248,17 @@ function on_play_shader() {
     live_renderer.reloadShader();
 }
 
+function on_stop_shader() {
+    live_renderer.stop_live_render();
+}
+
 window.on_play_shader = on_play_shader;
+window.on_stop_shader = on_stop_shader;
 window.save = save;
 
 vm.$watch("vim_mode", set_vim_mode);
 
 function set_vim_mode(enabled) {
-    console.log(enabled);
     if (enabled) {
         console.log("vim enabled");
         editor.setKeyboardHandler("ace/keyboard/vim");
@@ -263,6 +279,8 @@ var live_canvas = document.getElementById("render-canvas");
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/monokai");
 editor.session.setMode("ace/mode/glsl");
+
+window.editor = editor;
 
 /*
 ace.config.loadModule("ace/keyboard/vim", function(m) {
@@ -288,6 +306,5 @@ var live_renderer;
 window.onload = function() {
     console.log("load");
     live_renderer = new ShaderRenderer(live_canvas);
-    // screen can only do 20 fps
     live_renderer.start_live_render();
 };
